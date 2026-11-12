@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Veltriva — Global Payroll, Escrow & Autonomous Treasury</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- AG Grid Official Runtime -->
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-quartz.css" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- ================================================================== -->
+    <!-- LEFT ENTERPRISE SIDEBAR (MERCURY / RAMP / DEEL ARCHITECTURE)       -->
+    <!-- ================================================================== -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <div class="brand-text" style="flex:1; min-width:0;">
+          <span class="brand-title" id="sidebarOrgName" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Veltriva</span>
+          <span class="brand-tier" id="sidebarOrgTag">TREASURY OS</span>
+        </div>
+        <button id="btnOpenWorkspaceModal" class="btn btn-secondary btn-xs" title="Create your own clean Organization or switch workspaces">
+          Switch Org
+        </button>
+      </div>
+
+      <div class="sidebar-section-label">OPERATIONS</div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="view-payroll">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          <span>Global Payroll</span>
+          <span id="navPendingBadge" class="nav-Counter">6</span>
+        </button>
+
+        <button class="nav-item" data-view="view-escrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Milestone Escrow</span>
+        </button>
+
+        <button class="nav-item" data-view="view-attendance">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Time &amp; Shifts</span>
+        </button>
+
+        <button class="nav-item" data-view="view-intelligence">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4z"/></svg>
+          <span>Workforce Risk &amp; AI</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-section-label">INFRASTRUCTURE</div>
+      <nav class="sidebar-nav">
+        <button class="nav-item" data-view="view-ledger">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          <span>Ledger &amp; SQL Studio</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="gateway-card" id="btnPayPalConfig">
+          <div class="gateway-row">
+            <span id="paypalLiveDot" class="status-dot dot-emerald"></span>
+            <span class="gateway-title">PayPal Sandbox API</span>
+          </div>
+          <div class="gateway-sub" id="sidebarPayPalSub">api-m.sandbox.paypal.com</div>
+        </div>
+
+        <div class="user-session-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span class="session-label" style="margin:0;">SESSION ROLE (RBAC)</span>
+            <span id="activeOwnerLabel" style="font-size:10px; color:#a1a1aa;">Admin</span>
+          </div>
+          <select id="rbacRoleSelect" class="role-selector">
+            <option value="CFO_ADMIN">CFO / Treasury Admin (Full Access)</option>
+            <option value="HR_DIRECTOR">HR Operations Director (No Payouts)</option>
+            <option value="FULL_TIME_STAFF">Employee / Contractor (Read-Only)</option>
+          </select>
+        </div>
+        <button id="btnNewBlankOrgSidebar" class="btn btn-secondary" style="width:100%; justify-content:center;">
+          + Create Your Own Organization
+        </button>
+      </div>
+    </aside>
+
+    <!-- ================================================================== -->
+    <!-- MAIN WORKSPACE AREA                                                -->
+    <!-- ================================================================== -->
+    <div class="main-area">
+      <!-- TOP HEADER BAR -->
+      <header class="top-header">
+        <div class="header-breadcrumb">
+          <span class="crumb-root">Veltriva Treasury</span>
+          <span class="crumb-sep">/</span>
+          <span id="currentViewTitle" class="crumb-current">Global Payroll &amp; Disbursements</span>
+        </div>
+
+        <div class="header-actions">
+          <button id="btnOpenCopilotDrawer" class="btn btn-secondary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Ask Treasury AI</span>
+          </button>
+
+          <button id="btnResetDemo" class="btn btn-ghost" title="Reset pending records for live testing">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            <span>Reset Cycle</span>
+          </button>
+
+          <button id="btnBatchPayoutTop" class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span>Run PayPal Batch Payout</span>
+            <span id="pendingCountBadge" class="btn-badge">6</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- EXECUTIVE METRICS STRIP (ALWAYS VISIBLE AT TOP OF WORKSPACE) -->
+      <section class="metrics-strip">
+        <div class="metric-cell">
+          <div class="metric-top">
+            <span class="metric-label">Total Payroll Commitment</span>
+            <span class="metric-tag">Nov 2026</span>
+          </div>
+          <div class="metric-number" id="kpiGrossBurn">$0.00</div>
+          <div class="metric-caption" id="kpiGrossFoot">10 active workforce contracts</div>
+        </div>
+
+        <div class="metric-cell">
+          <div class="metric-top">
+            <span class="metric-label">Settled via PayPal API</span>
+            <span class="metric-tag tag-emerald">Completed</span>
+          </div>
+          <div class="metric-number text-emerald" id="kpiDisbursed">$0.00</div>
+          <div class="metric-caption" id="kpiDisbursedFoot">0 disbursements settled</div>
+        </div>
+
+        <div class="metric-cell">
+          <div class="metric-top">
+            <span class="metric-label">Awaiting Settlement</span>
+            <span class="metric-tag tag-amber">Queued</span>
+          </div>
+          <div class="metric-number text-amber" id="kpiPending">$0.00</div>
+          <div class="metric-caption" id="kpiPendingFoot">Ready for immediate execution</div>
+        </div>
+
+        <div class="metric-cell">
+          <div class="metric-top">
+            <span class="metric-label">General Ledger Integrity</span>
+            <span class="metric-tag tag-indigo">ACID Locked</span>
+          </div>
+          <div class="metric-number" id="kpiTrialBalance">Balanced</div>
+          <div class="metric-caption" id="kpiTrialFoot">Debits = Credits ($0.00)</div>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <!-- VIEW 1: GLOBAL PAYROLL & AG GRID LEDGER                          -->
+      <!-- ================================================================ -->
+      <section id="view-payroll" class="workspace-view active">
+        <div class="surface-card">
+          <div class="toolbar-row">
+            <div class="toolbar-left">
+              <div class="search-input-wrap">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="agQuickFilter" class="search-input" placeholder="Filter by employee, department, jurisdiction, or PayPal wallet..." />
+              </div>
+            </div>
+            <div class="toolbar-right">
+              <button id="btnOpenOnboardModal" class="btn btn-primary">
+                + Onboard Employee
+              </button>
+              <button id="btnDisburseSelected" class="btn btn-secondary">
+                Settle Selected Rows
+              </button>
+              <button id="btnExportCsv" class="btn btn-ghost">
+                Export CSV
+              </button>
+              <button id="btnClearWorkspace" class="btn btn-ghost" title="Remove all employees and sample records from this workspace">
+                Clear All Rows
+              </button>
+            </div>
+          </div>
+
+          <!-- AG Grid Mount Container -->
+          <div id="payrollAgGrid" class="ag-theme-quartz-dark ag-grid-container"></div>
+        </div>
+
+        <div class="grid-2col">
+          <!-- Department Cost Center Allocation -->
+          <div class="surface-card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Cost Center Allocation &amp; Budget Utilization</h3>
+                <p class="card-subtitle">Real-time department burn against monthly treasury allocation</p>
+              </div>
+            </div>
+            <div id="deptBurnContainer" class="cost-center-list"></div>
+          </div>
+
+          <!-- Live PayPal Sandbox Wire Inspector -->
+          <div class="surface-card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">PayPal API Wire &amp; ACID Lock Telemetry</h3>
+                <p class="card-subtitle">Live REST response payload from <code>api-m.sandbox.paypal.com</code></p>
+              </div>
+              <span class="mono-pill">OpenAPI 3.1 Validated</span>
+            </div>
+            <pre id="paypalTelemetryBox" class="terminal-box">// Execute a single or batch PayPal payout above to inspect the live OAuth2 + PayPal Sandbox REST response and PostgreSQL row-lock trace.</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <!-- VIEW 2: CONTRACTOR MILESTONE ESCROW & GANTT                      -->
+      <!-- ================================================================ -->
+      <section id="view-escrow" class="workspace-view">
+        <div class="surface-card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">Contractor Deliverable Schedule &amp; Smart Escrow</h3>
+              <p class="card-subtitle">Automated deliverable verification and instant PayPal Orders v2 capture</p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <span class="mono-pill">Bryntum Timeline Model</span>
+              <button id="btnOpenMilestoneModal" class="btn btn-primary">+ New Milestone Escrow</button>
+            </div>
+          </div>
+
+          <div class="gantt-container">
+            <div class="gantt-head">
+              <div>Deliverable &amp; Contractor</div>
+              <div>Escrow &amp; Verification</div>
+              <div class="gantt-scale">
+                <span>Nov 01</span><span>Nov 03</span><span>Nov 05</span><span>Nov 07</span><span>Nov 09</span><span>Nov 11</span><span>Nov 13</span>
+              </div>
+              <div style="text-align:right;">Settlement</div>
+            </div>
+            <div id="bryntumGanttBody" class="gantt-rows"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <!-- VIEW 3: TIME, SHIFTS & ATTENDANCE POLICY                         -->
+      <!-- ================================================================ -->
+      <section id="view-attendance" class="workspace-view">
+        <div class="grid-2col">
+          <div class="surface-card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Record Shift Check-In</h3>
+                <p class="card-subtitle">Arrivals after 09:15 local time accrue a late mark. Every 3 late marks deduct 0.5 day base pay.</p>
+              </div>
+            </div>
+            <form id="attendanceForm" class="clean-form-grid">
+              <div class="field-block">
+                <label>Employee</label>
+                <select id="attEmpSelect" class="field-control" required></select>
+              </div>
+              <div class="field-block">
+                <label>Work Date</label>
+                <input type="date" id="attDate" class="field-control" value="2026-11-10" required />
+              </div>
+              <div class="field-block">
+                <label>Shift Assignment</label>
+                <select id="attShift" class="field-control">
+                  <option value="SHIFT_MORNING">Morning Shift (09:00 – 17:00)</option>
+                  <option value="SHIFT_FLEX">Flexible / Remote Contractor</option>
+                  <option value="SHIFT_NIGHT">Night Operations</option>
+                </select>
+              </div>
+              <div class="field-block">
+                <label>Clock-In Time</label>
+                <input type="time" id="attCheckIn" class="field-control" value="09:45" required />
+              </div>
+              <div class="field-block">
+                <label>Clock-Out Time</label>
+                <input type="time" id="attCheckOut" class="field-control" value="20:30" required />
+              </div>
+              <div class="field-block">
+                <label>Audit Reference</label>
+                <input type="text" id="attNotes" class="field-control" value="Biometric / GitHub SSO Verified" />
+              </div>
+              <div class="field-span-full">
+                <button type="submit" class="btn btn-primary">Record Shift &amp; Recompute Payroll</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="surface-card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Shift Attendance &amp; Overtime Ledger</h3>
+                <p class="card-subtitle">Automated hours calculation and overtime spike monitoring</p>
+              </div>
+            </div>
+            <div id="attendanceTableContainer" class="table-wrap"></div>
+          </div>
+        </div>
+
+        <div class="grid-2col">
+          <div class="surface-card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Record Leave / Unpaid Absence (LWP)</h3>
+                <p class="card-subtitle">Unpaid Leave (LWP) automatically deducts pro-rata daily compensation via <code>fn_compute_employee_monthly_payroll()</code></p>
+              </div>
+            </div>
+            <form id="leaveForm" class="clean-form-grid">
+              <div class="field-block">
+                <label>Employee</label>
+                <select id="leaveEmpSelect" class="field-control" required></select>
+              </div>
+              <div class="field-block">
+                <label>Leave Category</label>
+                <select id="leaveTypeSelect" class="field-control">
+                  <option value="UNPAID_LWP">Unpaid Leave Without Pay (Deducts Salary)</option>
+                  <option value="EARNED_LEAVE">Earned Paid Leave (No Deduction)</option>
+                  <option value="SICK_LEAVE">Medical / Sick Leave (Paid)</option>
+                </select>
+              </div>
+              <div class="field-block">
+                <label>Start Date</label>
+                <input type="date" id="leaveStartDate" class="field-control" value="2026-11-11" required />
+              </div>
+              <div class="field-block">
+                <label>End Date</label>
+                <input type="date" id="leaveEndDate" class="field-control" value="2026-11-12" required />
+              </div>
+              <div class="field-block">
+                <label>Duration (Days)</label>
+                <input type="number" step="0.5" min="0.5" max="15" id="leaveDaysCount" class="field-control" value="2" required />
+              </div>
+              <div class="field-block">
+                <label>Reason / Reference</label>
+                <input type="text" id="leaveReason" class="field-control" value="Personal absence" required />
+              </div>
+              <div class="field-span-full">
+                <button type="submit" class="btn btn-primary">Approve Leave &amp; Recompute Payroll</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="surface-card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Leave &amp; Absence Register</h3>
+                <p class="card-subtitle">Approved paid and unpaid leave records for current payroll cycle</p>
+              </div>
+            </div>
+            <div id="leaveTableContainer" class="table-wrap"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <!-- VIEW 4: WORKFORCE RISK, ML FORECASTING & AI COPILOT              -->
+      <!-- ================================================================ -->
+      <section id="view-intelligence" class="workspace-view">
+        <div class="grid-2col">
+          <div class="surface-card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Veltriva Treasury Intelligence</h3>
+                <p class="card-subtitle">Natural-language compliance audit grounded in live PostgreSQL views</p>
+              </div>
+            </div>
+            <div class="quick-prompts">
+              <button class="prompt-pill" data-prompt="Run an attendance fraud, overtime anomaly, and late-mark deduction audit across all employees.">
+                Audit overtime &amp; late deductions
+              </button>
+              <button class="prompt-pill" data-prompt="Verify the Double-Entry ACID Trial Balance and explain how PostgreSQL triggers protect PayPal payouts.">
+                Verify double-entry ledger balance
+              </button>
+              <button class="prompt-pill" data-prompt="Which Bryntum contractor milestones are AI-verified and ready for PayPal Orders v2 escrow capture?">
+                List verified escrow milestones
+              </button>
+              <button class="prompt-pill" data-prompt="Give me an executive CFO briefing on November 2026 PayPal payouts and next month's ML burn forecast.">
+                Executive burn-rate forecast
+              </button>
+            </div>
+            <div id="copilotChatBox" class="chat-stream"></div>
+            <form id="copilotForm" class="chat-input-bar">
+              <input type="text" id="copilotInput" class="field-control" placeholder="Ask about payroll anomalies, tax withholdings, or PayPal settlement status..." required />
+              <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+          </div>
+
+          <div class="surface-card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Predictive Workforce &amp; Burn Telemetry</h3>
+                <p class="card-subtitle">Logistic attrition risk, linear burn projection, and k-Means segmentation</p>
+              </div>
+            </div>
+            <div id="mlMetricsCards" class="ml-kpi-row"></div>
+            <div id="mlPredictionsTable" class="table-wrap"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================ -->
+      <!-- VIEW 5: GENERAL LEDGER, AUDIT LOGS & SQL STUDIO                  -->
+      <!-- ================================================================ -->
+      <section id="view-ledger" class="workspace-view">
+        <div class="grid-2col">
+          <div class="surface-card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Double-Entry General Ledger</h3>
+                <p class="card-subtitle">Automated debit/credit postings triggered upon PayPal payout settlement</p>
+              </div>
+            </div>
+            <div id="trialBalanceBox" class="table-wrap"></div>
+          </div>
+
+          <div class="surface-card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title">Immutable System Audit Log</h3>
+                <p class="card-subtitle">Cryptographic JSONB state changes captured by database triggers</p>
+              </div>
+            </div>
+            <div id="auditLogsBox" class="table-wrap"></div>
+          </div>
+        </div>
+
+        <div class="surface-card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title">PostgreSQL 16 Interactive Query &amp; Execution Plan Studio</h3>
+              <p class="card-subtitle">Inspect live views, CTEs, window functions, and B-Tree index performance</p>
+            </div>
+          </div>
+
+          <div class="sql-presets">
+            <button class="prompt-pill sql-preset" data-sql="SELECT emp_code, full_name, dept_name, gross_pay_usd, late_deduction_usd, income_tax_usd, net_pay_usd, payment_status, dept_earner_rank FROM vw_employee_360_payroll ORDER BY dept_id, dept_earner_rank;">
+              Window Function (RANK OVER PARTITION)
+            </button>
+            <button class="prompt-pill sql-preset" data-sql="WITH HighRiskStaff AS (SELECT emp_id, full_name, dept_name, attrition_risk_score, ml_cluster_label FROM vw_employee_360_payroll WHERE attrition_risk_score > 15.0) SELECT h.*, p.overtime_hours, p.late_marks_count, p.net_pay_usd FROM HighRiskStaff h INNER JOIN payroll_runs p ON h.emp_id = p.emp_id ORDER BY h.attrition_risk_score DESC;">
+              CTE + Inner Join (Attrition Analysis)
+            </button>
+            <button class="prompt-pill sql-preset" data-sql="SELECT * FROM vw_double_entry_trial_balance;">
+              Trial Balance Reconciliation
+            </button>
+            <button class="prompt-pill sql-preset" data-sql="SELECT * FROM vw_department_burn_analytics;">
+              Cost Center Aggregation
+            </button>
+            <button class="prompt-pill sql-preset" data-sql="SELECT audit_id, table_name, operation_type, record_id, actor_role, changed_at FROM audit_logs ORDER BY audit_id DESC LIMIT 15;">
+              Trigger Audit Trail
+            </button>
+            <button class="prompt-pill sql-preset" data-sql="EXPLAIN ANALYZE SELECT * FROM payroll_runs WHERE pay_period_year = 2026 AND pay_period_month = 11 AND payment_status = 'PENDING_APPROVAL';">
+              EXPLAIN ANALYZE (Index Scan)
+            </button>
+          </div>
+
+          <div class="sql-runner-bar">
+            <textarea id="sqlQueryInput" class="sql-editor" rows="3">SELECT emp_code, full_name, dept_name, gross_pay_usd, late_deduction_usd, income_tax_usd, net_pay_usd, payment_status, dept_earner_rank FROM vw_employee_360_payroll ORDER BY dept_id, dept_earner_rank;</textarea>
+            <button id="btnRunSql" class="btn btn-primary">Run Query</button>
+          </div>
+          <div id="sqlMetaBar" class="sql-status-line">Connected to PostgreSQL 16 Pool.</div>
+          <div id="sqlResultContainer" class="table-wrap"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL 1: STATUTORY PAYSTUB & PAYPAL SETTLEMENT ADVICE                -->
+  <!-- ==================================================================== -->
+  <div id="slipModal" class="modal-overlay hidden">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-top">
+        <span class="modal-title">Statutory Paystub &amp; Remittance Advice</span>
+        <div class="modal-top-actions">
+          <button id="btnPrintSlip" class="btn btn-secondary">Print / Download PDF</button>
+          <button id="btnCloseSlip" class="btn btn-ghost">Close</button>
+        </div>
+      </div>
+      <div id="slipModalBody" class="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL 2: PAYPAL API GATEWAY CONFIGURATION                            -->
+  <!-- ==================================================================== -->
+  <div id="paypalModal" class="modal-overlay hidden">
+    <div class="modal-dialog">
+      <div class="modal-top">
+        <span class="modal-title">PayPal Sandbox Gateway Configuration</span>
+        <button id="btnClosePayPalModal" class="btn btn-ghost">Close</button>
+      </div>
+      <div class="modal-content">
+        <p class="helper-copy">
+          Configure runtime OAuth 2.0 credentials for <code>api-m.sandbox.paypal.com</code>. Credentials stored in your local <code>.env</code> are loaded automatically on boot.
+        </p>
+        <form id="paypalConfigForm" class="clean-form-stack">
+          <div class="field-block">
+            <label>PayPal Sandbox Client ID</label>
+            <input type="text" id="inputPayPalClientId" class="field-control" placeholder="Loaded from .env (paste to override)" />
+          </div>
+          <div class="field-block">
+            <label>PayPal Sandbox Secret</label>
+            <input type="password" id="inputPayPalClientSecret" class="field-control" placeholder="••••••••••••••" />
+          </div>
+          <button type="submit" class="btn btn-primary">Update Gateway Credentials</button>
+        </form>
+        <div id="paypalConfigStatusBox" class="gateway-meta-box"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL 3: COMPENSATION STRUCTURE ADJUSTMENT                           -->
+  <!-- ==================================================================== -->
+  <div id="salaryEditModal" class="modal-overlay hidden">
+    <div class="modal-dialog">
+      <div class="modal-top">
+        <span class="modal-title">Adjust Compensation Structure</span>
+        <button id="btnCloseSalaryModal" class="btn btn-ghost">Close</button>
+      </div>
+      <div class="modal-content">
+        <form id="salaryEditForm" class="clean-form-stack">
+          <input type="hidden" id="editSalEmpId" />
+          <div class="field-block">
+            <label>Employee</label>
+            <input type="text" id="editSalEmpName" class="field-control" disabled />
+          </div>
+          <div class="field-block">
+            <label>Base Monthly Salary (USD)</label>
+            <input type="number" step="50" id="editSalBase" class="field-control" required />
+          </div>
+          <div class="field-block">
+            <label>Hourly Overtime Rate (USD)</label>
+            <input type="number" step="5" id="editSalOtRate" class="field-control" required />
+          </div>
+          <div class="field-block">
+            <label>Performance Bonus Allocation (USD)</label>
+            <input type="number" step="50" id="editSalBonus" class="field-control" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Save &amp; Recompute Payroll</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL 4: ONBOARD NEW EMPLOYEE / CONTRACTOR                           -->
+  <!-- ==================================================================== -->
+  <div id="onboardModal" class="modal-overlay hidden">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-top">
+        <span class="modal-title">Onboard Employee or Global Contractor</span>
+        <button id="btnCloseOnboardModal" class="btn btn-ghost">Close</button>
+      </div>
+      <div class="modal-content">
+        <p class="helper-copy">
+          Add any real or sandbox team member. Their compensation structure is normalized into <code>salary_structures</code> and their November tax &amp; net pay are immediately calculated by PostgreSQL stored function <code>fn_compute_employee_monthly_payroll()</code>.
+        </p>
+        <form id="onboardForm" class="clean-form-grid" style="padding:0;">
+          <div class="field-block">
+            <label>Full Name</label>
+            <input type="text" id="onboardName" class="field-control" placeholder="e.g., Rohan Verma" required />
+          </div>
+          <div class="field-block">
+            <label>Work Email</label>
+            <input type="email" id="onboardEmail" class="field-control" placeholder="rohan@veltriva.ai" required />
+          </div>
+          <div class="field-block">
+            <label>PayPal Sandbox Recipient Email</label>
+            <input type="email" id="onboardPayPal" class="field-control" placeholder="rohan.personal.sandbox@paypal.com" required />
+          </div>
+          <div class="field-block">
+            <label>Designation / Title</label>
+            <input type="text" id="onboardTitle" class="field-control" value="Principal AI Systems Engineer" required />
+          </div>
+          <div class="field-block">
+            <label>Cost Center Department</label>
+            <select id="onboardDept" class="field-control">
+              <option value="1">AI-CORE — Autonomous AI &amp; Agentic Systems</option>
+              <option value="2">FIN-ENG — PayPal Treasury &amp; Ledger Engineering</option>
+              <option value="3">SEC-OPS — Zero-Trust Database &amp; Risk Security</option>
+              <option value="4">PROD-UX — Enterprise Design &amp; UX</option>
+            </select>
+          </div>
+          <div class="field-block">
+            <label>Employment Classification &amp; Tax Jurisdiction</label>
+            <div style="display:flex; gap:8px;">
+              <select id="onboardType" class="field-control" style="flex:1;">
+                <option value="FULL_TIME">Full-Time Salaried</option>
+                <option value="CONTRACTOR">Global Contractor</option>
+              </select>
+              <select id="onboardCountry" class="field-control" style="width:95px;">
+                <option value="US">US</option>
+                <option value="IN">IN</option>
+                <option value="UK">UK</option>
+                <option value="SG">SG</option>
+                <option value="DE">DE</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-block">
+            <label>Base Monthly Salary (USD)</label>
+            <input type="number" step="100" id="onboardBase" class="field-control" value="6500" required />
+          </div>
+          <div class="field-block">
+            <label>Housing &amp; Special Allowances (USD)</label>
+            <div style="display:flex; gap:8px;">
+              <input type="number" step="50" id="onboardHra" class="field-control" value="1400" placeholder="HRA" required />
+              <input type="number" step="50" id="onboardSpecial" class="field-control" value="900" placeholder="Special" required />
+            </div>
+          </div>
+          <div class="field-span-full" style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+            <button type="submit" class="btn btn-primary">Onboard &amp; Generate Payroll Slip</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL 5: CREATE NEW MILESTONE ESCROW                                 -->
+  <!-- ==================================================================== -->
+  <div id="milestoneModal" class="modal-overlay hidden">
+    <div class="modal-dialog">
+      <div class="modal-top">
+        <span class="modal-title">Create Contractor Milestone Escrow</span>
+        <button id="btnCloseMilestoneModal" class="btn btn-ghost">Close</button>
+      </div>
+      <div class="modal-content">
+        <form id="milestoneForm" class="clean-form-stack">
+          <div class="field-block">
+            <label>Assign Contractor / Engineer</label>
+            <select id="mileEmpSelect" class="field-control" required></select>
+          </div>
+          <div class="field-block">
+            <label>Project Initiative</label>
+            <input type="text" id="mileProject" class="field-control" value="PayPal v2 Smart Treasury" required />
+          </div>
+          <div class="field-block">
+            <label>Milestone Deliverable Title</label>
+            <input type="text" id="mileTitle" class="field-control" placeholder="e.g., M8: Multi-Currency FX Settlement Engine" required />
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="field-block">
+              <label>Start Date</label>
+              <input type="date" id="mileStart" class="field-control" value="2026-11-08" required />
+            </div>
+            <div class="field-block">
+              <label>Due Date</label>
+              <input type="date" id="mileDue" class="field-control" value="2026-11-13" required />
+            </div>
+          </div>
+          <div class="field-block">
+            <label>Escrow Amount (USD)</label>
+            <input type="number" step="50" id="mileAmount" class="field-control" value="2250" required />
+          </div>
+          <div class="field-block">
+            <label>Deliverable Verification URL (GitHub PR / Deployment)</label>
+            <input type="url" id="mileUrl" class="field-control" value="https://github.com/veltriva-ai/core/pull/214" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Lock Escrow &amp; Verify Deliverable</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL 6: MULTI-TENANT ORGANIZATION SIGN-UP, LOGIN & SWITCHER         -->
+  <!-- ==================================================================== -->
+  <div id="orgAuthModal" class="modal-overlay hidden">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-top">
+        <span class="modal-title">Organization Workspaces &amp; Account Setup</span>
+        <button id="btnCloseOrgModal" class="btn btn-ghost">Close</button>
+      </div>
+      <div class="modal-content">
+        <div class="grid-2col" style="gap:20px;">
+          <!-- Left Column: Create Brand-New Clean Organization (0 Sample Data) -->
+          <div style="border-right:1px solid var(--border-hairline); padding-right:18px;">
+            <div style="font-size:13px; font-weight:600; color:#f4f4f5; margin-bottom:4px;">Create Your Own Organization (Start 100% Clean)</div>
+            <p class="helper-copy" style="margin-bottom:12px;">
+              Provisions an isolated multi-tenant workspace in PostgreSQL with <strong>zero sample employees</strong> and your own PayPal API keys.
+            </p>
+            <form id="registerOrgForm" class="clean-form-stack">
+              <div class="field-block">
+                <label>Company / Organization Name</label>
+                <input type="text" id="regOrgName" class="field-control" placeholder="e.g., Acme Global Labs Inc." required />
+              </div>
+              <div class="field-block">
+                <label>Your Full Name (Workspace Owner)</label>
+                <input type="text" id="regOwnerName" class="field-control" placeholder="e.g., Alex Rivera" required />
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div class="field-block">
+                  <label>Work Email</label>
+                  <input type="email" id="regOwnerEmail" class="field-control" placeholder="alex@acme.io" required />
+                </div>
+                <div class="field-block">
+                  <label>Password</label>
+                  <input type="password" id="regPassword" class="field-control" placeholder="••••••••" required />
+                </div>
+              </div>
+              <div class="field-block">
+                <label>Your PayPal Sandbox Client ID (Optional — can add later)</label>
+                <input type="text" id="regPayPalId" class="field-control" placeholder="Paste your own PayPal App Client ID" />
+              </div>
+              <div class="field-block">
+                <label>Your PayPal Sandbox Secret (Optional — can add later)</label>
+                <input type="password" id="regPayPalSecret" class="field-control" placeholder="Paste your own PayPal App Secret" />
+              </div>
+              <button type="submit" class="btn btn-primary" style="justify-content:center;">
+                Create Clean Organization Workspace
+              </button>
+            </form>
+          </div>
+
+          <!-- Right Column: Switch Workspace or Sign In to Existing Organization -->
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div>
+              <div style="font-size:13px; font-weight:600; color:#f4f4f5; margin-bottom:4px;">Switch Active Workspace</div>
+              <p class="helper-copy" style="margin-bottom:10px;">
+                Switch instantly between your custom clean organizations and the pre-populated Demo Sandbox.
+              </p>
+              <div id="orgSwitchList" style="display:flex; flex-direction:column; gap:8px; max-height:190px; overflow-y:auto;"></div>
+            </div>
+
+            <div style="border-top:1px solid var(--border-hairline); padding-top:14px;">
+              <div style="font-size:13px; font-weight:600; color:#f4f4f5; margin-bottom:8px;">Sign In with Email &amp; Password</div>
+              <form id="loginOrgForm" class="clean-form-stack">
+                <div class="field-block">
+                  <label>Owner Email</label>
+                  <input type="email" id="loginEmailInput" class="field-control" placeholder="you@company.com" required />
+                </div>
+                <div class="field-block">
+                  <label>Password</label>
+                  <input type="password" id="loginPasswordInput" class="field-control" placeholder="••••••••" required />
+                </div>
+                <button type="submit" class="btn btn-secondary" style="justify-content:center;">
+                  Sign In to Organization
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-stack"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
